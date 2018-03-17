@@ -1,0 +1,46 @@
+{
+    "fluentMethods": true,
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "userid",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "target_type",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "target_id",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "target_extend",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "create_time",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "modify_time",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "deleted",
+            "fieldType": "Boolean"
+        },
+        {
+            "fieldName": "desc",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20180317083044",
+    "dto": "no",
+    "service": "serviceClass",
+    "entityTableName": "favorite",
+    "jpaMetamodelFiltering": false,
+    "pagination": "pagination",
+    "microserviceName": "favorite",
+    "searchEngine": false
+}
