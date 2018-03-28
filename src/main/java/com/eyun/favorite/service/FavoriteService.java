@@ -2,6 +2,9 @@ package com.eyun.favorite.service;
 
 import com.eyun.favorite.domain.Favorite;
 import com.eyun.favorite.repository.FavoriteRepository;
+
+import java.time.Instant;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -67,6 +70,13 @@ public class FavoriteService {
      */
     public void delete(Long id) {
         log.debug("Request to delete Favorite : {}", id);
-        favoriteRepository.delete(id);
+        /**
+         * 重写删除方法
+         */
+        Favorite favorite = favoriteRepository.findOne(id);
+        favorite.setDeleted(true);
+        favorite.setModify_time(Instant.now());
+        favoriteRepository.save(favorite);
+        return ;
     }
 }

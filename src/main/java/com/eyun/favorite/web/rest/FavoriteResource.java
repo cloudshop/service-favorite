@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +53,12 @@ public class FavoriteResource {
         if (favorite.getId() != null) {
             throw new BadRequestAlertException("A new favorite cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        /**
+         * 设置创建时间
+         * 设置删除默认值
+         */
+        favorite.create_time(Instant.now());
+        favorite.setDeleted(true);
         Favorite result = favoriteService.save(favorite);
         return ResponseEntity.created(new URI("/api/favorites/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
@@ -75,6 +81,10 @@ public class FavoriteResource {
         if (favorite.getId() == null) {
             return createFavorite(favorite);
         }
+        /**
+         * 设置修改时间
+         */
+        favorite.setModify_time(Instant.now());
         Favorite result = favoriteService.save(favorite);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, favorite.getId().toString()))
@@ -120,6 +130,10 @@ public class FavoriteResource {
     @Timed
     public ResponseEntity<Void> deleteFavorite(@PathVariable Long id) {
         log.debug("REST request to delete Favorite : {}", id);
+        /**
+         * 重写物理删除
+         */
+        
         favoriteService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
