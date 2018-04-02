@@ -191,18 +191,16 @@ public class FavoriteResource {
     	String userid = SecurityUtils.getCurrentUserLogin().orElse(Constants.SYSTEM_ACCOUNT);
     	List<String> findByType = favoriteService.findByType(type,"1");
     	System.out.println(findByType);
-    	/*JSONArray jsonArray = JSONArray.fromObject(findByType);
-    	
-    	List pro = feignProductClient.getPro(jsonArray);*/
     	String join = StringUtils.join(findByType,",");
     	System.out.println(join);
     	RestTemplate restTemplate = new RestTemplate();
     	ResponseEntity<List> responseEntity = restTemplate.getForEntity("http://192.168.1.96:8116/api/products?id.in="+join, List.class);
     	return responseEntity;
 //    	return new ResponseEntity<>(pro,HttpStatus.OK);
-    }
+    	//List pro = feignProductClient.getPro(findByType);
+    	/*JSONArray jsonArray = JSONArray.fromObject(findByType);   	
+    	List pro = feignProductClient.getPro(jsonArray);*/
 //    	List body = responseEntity.getBody();
-//    	return ResponseEntity.ok().body(findByType);   
     }  
-    
+}  
 
