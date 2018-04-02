@@ -1,7 +1,6 @@
 package com.eyun.favorite.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
-import com.eyun.favorite.client.FeignProductClient;
 import com.eyun.favorite.config.Constants;
 import com.eyun.favorite.domain.Favorite;
 import com.eyun.favorite.security.SecurityUtils;
@@ -49,10 +48,7 @@ public class FavoriteResource {
     private static final String ENTITY_NAME = "favorite";
 
     private final FavoriteService favoriteService;
-    
-    @Autowired
-    FeignProductClient feignProductClient;
-
+ 
     public FavoriteResource(FavoriteService favoriteService) {
         this.favoriteService = favoriteService;
     }
