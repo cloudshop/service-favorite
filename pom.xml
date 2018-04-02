@@ -357,6 +357,12 @@
             <artifactId>spring-security-data</artifactId>
         </dependency>
         <!-- jhipster-needle-maven-add-dependency -->
+        <dependency>  
+    <groupId>net.sf.json-lib</groupId>  
+    <artifactId>json-lib</artifactId>  
+    <version>2.4</version>  
+    <classifier>jdk15</classifier>  
+</dependency>
     </dependencies>
 
     <build>
@@ -525,7 +531,7 @@
                     <changeLogFile>src/main/resources/config/liquibase/master.xml</changeLogFile>
                     <diffChangeLogFile>src/main/resources/config/liquibase/changelog/${maven.build.timestamp}_changelog.xml</diffChangeLogFile>
                     <driver>com.mysql.jdbc.Driver</driver>
-                    <url>jdbc:mysql://localhost:3306/favorite</url>
+                    <url>jdbc:mysql://192.168.1.10:3306/favorite</url>
                     <defaultSchemaName>favorite</defaultSchemaName>
                     <username>root</username>
                     <password></password>
