@@ -9,13 +9,10 @@ import com.eyun.favorite.web.rest.errors.BadRequestAlertException;
 import com.eyun.favorite.web.rest.util.HeaderUtil;
 import com.eyun.favorite.web.rest.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
-import net.sf.json.JSONArray;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.math.stat.descriptive.summary.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -24,16 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
