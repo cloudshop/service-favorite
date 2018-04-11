@@ -8,7 +8,10 @@ import com.eyun.favorite.service.FavoriteService;
 import com.eyun.favorite.web.rest.errors.BadRequestAlertException;
 import com.eyun.favorite.web.rest.util.HeaderUtil;
 import com.eyun.favorite.web.rest.util.PaginationUtil;
+import com.hazelcast.spi.impl.operationservice.impl.responses.Response;
+
 import io.github.jhipster.web.util.ResponseUtil;
+import io.swagger.annotations.ApiOperation;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -140,8 +143,9 @@ public class FavoriteResource {
     }
     
     /**
-     * 收藏商品
+     * 收藏商品或店铺
      */
+    @ApiOperation(value = "关注商品或店铺")
     @GetMapping("/favProduct/{proid}/{type}")
     @Timed
     public ResponseEntity<Boolean> creFavorite(@PathVariable String proid,@PathVariable String type){
@@ -172,22 +176,31 @@ public class FavoriteResource {
     		return ResponseEntity.ok().body(flag);
     	}
     }
+    @ApiOperation(value = "查看该用户收藏的所有商品或者店铺(没有)")
     @GetMapping("/findFavorite/{type}")
     @Timed
-    public ResponseEntity findProFavorite(@PathVariable String type) throws Exception{
+    public ResponseEntity<List<Favorite>> findProFavorite(@PathVariable String type) throws Exception{
     	String userid = SecurityUtils.getCurrentUserLogin().orElse(Constants.SYSTEM_ACCOUNT);
     	List<String> findByType = favoriteService.findByType(type,"1");
-    	System.out.println(findByType);
     	String join = StringUtils.join(findByType,",");
-    	System.out.println(join);
     	RestTemplate restTemplate = new RestTemplate();
-    	ResponseEntity<List> responseEntity = restTemplate.getForEntity("http://192.168.1.96:8116/api/products?id.in="+join, List.class);
-    	return responseEntity;
-//    	return new ResponseEntity<>(pro,HttpStatus.OK);
-    	//List pro = feignProductClient.getPro(findByType);
-    	/*JSONArray jsonArray = JSONArray.fromObject(findByType);   	
-    	List pro = feignProductClient.getPro(jsonArray);*/
-//    	List body = responseEntity.getBody();
+    	ResponseEntity<List> pros = restTemplate.getForEntity("http://cloud.eyun.online:9080/product/api/products?id.in="+join, List.class);
+    	String string = pros.getBody().toString();
+    	return  new ResponseEntity<>(pros.getBody(), HttpStatus.OK);
+
     }  
+    @ApiOperation(value = "商品页面取消关注")
+    @GetMapping("/delFavorite/{proid}")
+    @Timed
+    public ResponseEntity<List<Favorite>> delFavorite(@PathVariable String proid) throws Exception{
+    	Favorite findByPidAndType = favoriteService.findByPidAndType(proid,"1","1");
+    	findByPidAndType.setModify_time(Instant.now());;
+		Boolean flag =findByPidAndType.isDeleted();
+		flag = new Boolean(!flag.booleanValue());
+		findByPidAndType.setDeleted(flag);
+		favoriteService.save(findByPidAndType);
+		ResponseEntity<List<Favorite>> findProFavorite = findProFavorite("1");
+		return findProFavorite;	
+    }
 }  
 
