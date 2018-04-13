@@ -14,6 +14,7 @@ import javax.persistence.criteria.Root;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -89,13 +90,14 @@ public class FavoriteService {
     
 
 
-	public Favorite findByPidAndType(String proid, String type, String userid) {
+	public Favorite findByPidAndType(String skuid, String type, String userid) {
 		Favorite favorite = favoriteRepository.findOne(new Specification<Favorite>(){
 			@Override
 			public Predicate toPredicate(Root<Favorite> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				Predicate p1 = cb.equal(root.get("target_type"), type);
-				Predicate p2 = cb.equal(root.get("target_id"),proid);
+				Predicate p2 = cb.equal(root.get("target_id"),skuid);
 				Predicate p3 = cb.equal(root.get("userid"), userid);
+				Predicate p4 = cb.equal(root.get("deleted"),false);
 				query.where(cb.and(p1,p2,p3));
 				return null;
 			}
