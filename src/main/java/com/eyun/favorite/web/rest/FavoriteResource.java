@@ -6,9 +6,12 @@ import com.eyun.favorite.domain.Favorite;
 import com.eyun.favorite.security.SecurityUtils;
 import com.eyun.favorite.service.FavoriteService;
 import com.eyun.favorite.service.ProductSkuService;
+import com.eyun.favorite.service.UaaService;
+import com.eyun.favorite.web.rest.dto.UserDTO;
 import com.eyun.favorite.web.rest.errors.BadRequestAlertException;
 import com.eyun.favorite.web.rest.util.HeaderUtil;
 import com.eyun.favorite.web.rest.util.PaginationUtil;
+
 import io.github.jhipster.web.util.ResponseUtil;
 import io.swagger.annotations.ApiOperation;
 
@@ -43,6 +46,9 @@ public class FavoriteResource {
     
     @Autowired
     private ProductSkuService productSkuService;
+    
+    @Autowired
+    private UaaService uaaService;
     
     public FavoriteResource(FavoriteService favoriteService) {
         this.favoriteService = favoriteService;
@@ -156,7 +162,14 @@ public class FavoriteResource {
     	 * 如果没有就直接添加
     	 */
     	String userid = SecurityUtils.getCurrentUserLogin().orElse(Constants.SYSTEM_ACCOUNT);
-    	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,type,"1");
+    	UserDTO userDTO;
+  	  try {
+  		 userDTO=uaaService.getAccount();	
+			  } catch (Exception e) {
+				  throw new BadRequestAlertException("获取当前用户失败", "", "");
+			 }
+    	
+    	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,type,userDTO.getId());
     	if(findByPidAndType==null){
     		
     		Favorite favorite = new Favorite();
@@ -164,9 +177,9 @@ public class FavoriteResource {
     		favorite.setDeleted(false);
     		favorite.setTarget_id(skuid);
     		favorite.setTarget_type(type);
-    		favorite.setUserid("1");
+    		favorite.setUserid(userDTO.getId().toString());
     		favoriteService.save(favorite);
-    		System.out.println("关注"+findByPidAndType.toString());
+//    		System.out.println("关注"+findByPidAndType.toString());
     		return ResponseEntity.ok().body(true);
     	}else{
     		findByPidAndType.setModify_time(Instant.now());;
@@ -186,8 +199,15 @@ public class FavoriteResource {
     @GetMapping("/findFavorite/{type}")
     @Timed
     public ResponseEntity<List<Map>> findProFavorite(@PathVariable String type) throws Exception{
-    	String userid = SecurityUtils.getCurrentUserLogin().orElse(Constants.SYSTEM_ACCOUNT);
-    	List<String> findByType = favoriteService.findByType(type,"1");
+    	
+    	UserDTO userDTO;
+    	  try {
+    		 userDTO=uaaService.getAccount();	
+  			  } catch (Exception e) {
+  				  throw new BadRequestAlertException("获取当前用户失败", "", "");
+  			 }
+    	
+    	List<String> findByType = favoriteService.findByType(type,userDTO.getId());
     	List<Map> follow = productSkuService.follow(findByType);
     	return  new ResponseEntity<>(follow, HttpStatus.OK);
     }  
@@ -196,7 +216,13 @@ public class FavoriteResource {
     @GetMapping("/delFavorite/{skuid}")
     @Timed
     public ResponseEntity<List<Map>> delFavorite(@PathVariable String skuid) throws Exception{
-    	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,"1","1");
+      UserDTO userDTO;
+  	  try {
+   		 userDTO=uaaService.getAccount();	
+ 			  } catch (Exception e) {
+ 				  throw new BadRequestAlertException("获取当前用户失败", "", "");
+ 			 }
+    	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,"1",userDTO.getId());
     	findByPidAndType.setModify_time(Instant.now());;
 		Boolean flag =findByPidAndType.isDeleted();
 		flag = new Boolean(!flag.booleanValue());
