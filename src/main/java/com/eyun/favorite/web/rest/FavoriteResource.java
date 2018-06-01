@@ -3,10 +3,12 @@ package com.eyun.favorite.web.rest;
 import com.codahale.metrics.annotation.Timed;
 import com.eyun.favorite.config.Constants;
 import com.eyun.favorite.domain.Favorite;
+import com.eyun.favorite.domain.Mercury;
 import com.eyun.favorite.security.SecurityUtils;
 import com.eyun.favorite.service.FavoriteService;
 import com.eyun.favorite.service.ProductSkuService;
 import com.eyun.favorite.service.UaaService;
+import com.eyun.favorite.service.UserService;
 import com.eyun.favorite.web.rest.dto.UserDTO;
 import com.eyun.favorite.web.rest.errors.BadRequestAlertException;
 import com.eyun.favorite.web.rest.util.HeaderUtil;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +52,9 @@ public class FavoriteResource {
     
     @Autowired
     private UaaService uaaService;
+    
+    @Autowired
+    private UserService userService;
     
     public FavoriteResource(FavoriteService favoriteService) {
         this.favoriteService = favoriteService;
@@ -152,7 +158,7 @@ public class FavoriteResource {
     /**
      * 收藏商品或店铺
      */
-    @ApiOperation(value = "关注商品或店铺")
+    @ApiOperation(value = "关注商品或店铺(true页面显示关注，表示已被取消关注)")
     @GetMapping("/favProduct/{skuid}/{type}")
     @Timed
     public ResponseEntity<Boolean> creFavorite(@PathVariable String skuid,@PathVariable String type){
@@ -161,14 +167,12 @@ public class FavoriteResource {
     	 * 如果有就直接更新 设置修改时间，和取相反值
     	 * 如果没有就直接添加
     	 */
-    	String userid = SecurityUtils.getCurrentUserLogin().orElse(Constants.SYSTEM_ACCOUNT);
     	UserDTO userDTO;
-  	  try {
+  	    try {
   		 userDTO=uaaService.getAccount();	
 			  } catch (Exception e) {
 				  throw new BadRequestAlertException("获取当前用户失败", "", "");
 			 }
-    	
     	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,type,userDTO.getId());
     	if(findByPidAndType==null){
     		
@@ -189,7 +193,6 @@ public class FavoriteResource {
     		System.out.println(flag);
     		findByPidAndType.setDeleted(flag);
     		Favorite save = favoriteService.save(findByPidAndType);
-    		System.out.println("取消关注"+save.toString());
     		//返回true 页面显示取消关注成功，返回false关注
     		return ResponseEntity.ok().body(flag);
     	}
@@ -201,34 +204,56 @@ public class FavoriteResource {
     public ResponseEntity<List<Map>> findProFavorite(@PathVariable String type) throws Exception{
     	
     	UserDTO userDTO;
+    	List<Map> follow = new ArrayList();
     	  try {
     		 userDTO=uaaService.getAccount();	
   			  } catch (Exception e) {
   				  throw new BadRequestAlertException("获取当前用户失败", "", "");
   			 }
-    	
-    	List<String> findByType = favoriteService.findByType(type,userDTO.getId());
-    	List<Map> follow = productSkuService.follow(findByType);
+    	if(type.equals("1")){
+        	List<String> findByType = favoriteService.findByType(type,userDTO.getId());
+        	follow = productSkuService.follow(findByType);
+    	}else{
+    		List<String> findByType = favoriteService.findByType(type,userDTO.getId());
+    		List<Long> ids = new ArrayList();
+    		Long valueOf = null;
+    		for (String string : findByType) {
+			    valueOf = Long.valueOf(string);
+			    ids.add(valueOf);
+		
+			}
+    		if(ids != null){
+       		 ResponseEntity<List<Map>> favMercuries = userService.getFavMercuries(ids);
+       		 follow = favMercuries.getBody();
+    		}
+    	}
     	return  new ResponseEntity<>(follow, HttpStatus.OK);
     }  
     
+    
+    
     @ApiOperation(value = "商品页面取消关注")
-    @GetMapping("/delFavorite/{skuid}")
+    @GetMapping("/delFavorite/{skuid}/{type)")
     @Timed
-    public ResponseEntity<List<Map>> delFavorite(@PathVariable String skuid) throws Exception{
+    public ResponseEntity<List<Map>> delFavorite(@PathVariable String skuid,@PathVariable String type) throws Exception{
       UserDTO userDTO;
+      ResponseEntity<List<Map>> findProFavorite = null;
   	  try {
-   		 userDTO=uaaService.getAccount();	
+   		 userDTO= uaaService.getAccount();	
  			  } catch (Exception e) {
  				  throw new BadRequestAlertException("获取当前用户失败", "", "");
  			 }
-    	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,"1",userDTO.getId());
-    	findByPidAndType.setModify_time(Instant.now());;
-		Boolean flag =findByPidAndType.isDeleted();
-		flag = new Boolean(!flag.booleanValue());
-		findByPidAndType.setDeleted(flag);
-		favoriteService.save(findByPidAndType);
-		ResponseEntity<List<Map>> findProFavorite = findProFavorite("1");
+  	  
+    	Favorite findByPidAndType = favoriteService.findByPidAndType(skuid,type,userDTO.getId());
+    	System.out.println("-----------" + "skuid:" + skuid + "userDTO.getId():" + userDTO.getId());
+    	if(findByPidAndType != null){
+    		findByPidAndType.setModify_time(Instant.now());;
+    		Boolean flag =findByPidAndType.isDeleted();
+    		flag = new Boolean(!flag.booleanValue());
+    		findByPidAndType.setDeleted(flag);
+    		favoriteService.save(findByPidAndType);
+    		findProFavorite = findProFavorite("1");
+    	}
 		return findProFavorite;	
     }
 }  
